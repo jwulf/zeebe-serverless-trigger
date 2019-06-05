@@ -1,0 +1,5 @@
+handlers:
+  - taskType: "check-inventory"
+    url: "http://localhost:3000/check-inventory"
+  - taskType: "ship-product"
+    url: "http://localhost:3000/ship-product"

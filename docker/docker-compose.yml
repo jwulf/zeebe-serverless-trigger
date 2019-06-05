@@ -1,0 +1,46 @@
+version: "2"
+
+networks:
+  zeebe_network:
+    driver: bridge
+
+services:
+  zeebe:
+    container_name: zeebe_broker
+    image: camunda/zeebe:SNAPSHOT
+    environment:
+      - ZEEBE_LOG_LEVEL=debug
+      - EVENT_STORE_EXPORTER_URL=http://eventstore:2113
+      - EVENT_STORE_EXPORTER_BATCH_TIME_MILLI=300
+      - EVENT_STORE_EXPORTER_BATCH_SIZE=100
+      - EVENT_STORE_EXPORTER_STREAM_NAME=zeebe
+    ports:
+      - "26500:26500"
+    volumes:
+      - ../target/zeebe-serverless-trigger-1.0-SNAPSHOT.jar:/usr/local/zeebe/lib/zeebe-eventstore-exporter-1.0-SNAPSHOT.jar
+      - ./zeebe.cfg.toml:/usr/local/zeebe/conf/zeebe.cfg.toml
+      - ./serverless-trigger.yaml:/usr/local/zeebe/conf/serverless-trigger.yaml
+    networks:
+      - zeebe_network
+    depends_on:
+      - localstack
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4567-4584:4567-4584"
+      - "4592:4592"
+      - "8080:8080"
+    environment:
+      - SERVICES=serverless,cloudformation,sts
+      - LAMBDA_REMOTE_DOCKER=false
+      - DEBUG=1
+      #      - DATA_DIR=${DATA_DIR- }
+      - PORT_WEB_UI=8080
+      #      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+      #      - KINESIS_ERROR_PROBABILITY=${KINESIS_ERROR_PROBABILITY- }
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "./.localstack:/tmp/localstack"
+
+
+
